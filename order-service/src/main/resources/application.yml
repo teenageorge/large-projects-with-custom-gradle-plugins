@@ -1,0 +1,25 @@
+spring:
+  datasource:
+    hikari:
+      connection-init-sql: "SET TIME ZONE 'UTC';"
+  r2dbc:
+    url: \${R2DBC_URL:r2dbc:postgresql://localhost:15433/orders}
+    username: \${R2DBC_USERNAME:user}
+    password: \${R2DBC_PASSWORD:password}
+  flyway:
+    url: \${FLYWAY_URL:jdbc:postgresql://localhost:15433/orders}
+    user: \${FLYWAY_USERNAME:user}
+    password: \${FLYWAY_PASSWORD:password}
+  aop:
+    proxy-target-class: false
+  webflux:
+    base-path: /order
+management:
+  endpoints:
+    web:
+      # change actuator base path to `/manage` instead of default `/actuator`
+      base-path: /manage
+      exposure:
+        include: info, health, metrics
+server:
+  port: 9170
