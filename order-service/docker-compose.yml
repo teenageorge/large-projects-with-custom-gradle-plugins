@@ -1,0 +1,13 @@
+version: "3.7"
+
+services:
+  db:
+    command: postgres
+    container_name: orders-db
+    image: postgres:14-alpine
+    ports:
+      - "15433:5432"
+    environment:
+      - POSTGRES_DB=orders
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
