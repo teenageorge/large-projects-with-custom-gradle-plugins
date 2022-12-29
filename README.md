@@ -76,5 +76,13 @@ plugins {
 #### Build databases:
 Two postgres databases for each of the microservices. Postgres:14-alpine image is used to start two DB containers.
 #### Plugging it all in:
-The important bits are in the .gradle.kts files. The root large-projects-with-custom-gradle-plugins is like an umbrella project which is a monorepo containing the source code of different products. Take note that its build.gradle.kts is empty. The settings.gradle.kts “includes” the three builds - consumer-service, order-service and gradle-plugins. This is different from including a project in the multi-project hierarchical development, because this is a composite build. A composite build specifies which buildable components are to be grouped together.
+
+The important bits are in the `.gradle.kts` files. The root large-projects-with-custom-gradle-plugins is like an umbrella project which is a monorepo containing the source code of different products. 
+
+Take note that its `build.gradle.kts` is empty. 
+
+The `settings.gradle.kts` “includes” the three builds - consumer-service, order-service and gradle-plugins. 
+
+This is different from including a project in the multi-project hierarchical development, because this is a composite build. A composite build specifies which buildable components are to be grouped together.
+
 Go over to the source code and have a look at how it is all implemented.
