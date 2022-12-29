@@ -9,7 +9,7 @@ The solution is developed with production readiness in mind while limiting the f
 
 Unrelated to the scope of the article, the source code can be a reference for anyone developing microservices in Spring boot (reactive), Kotlin, Flyway, jOOQ and Postgres.
 
-**Source code**: https://github.com/teenageorge/large-projects-with-custom-gradle-plugins
+**Source code**: [large-projects-with-custom-gradle-plugins](https://github.com/teenageorge/large-projects-with-custom-gradle-plugins)
 
 ## Audience:
 Developers who are familiar with gradle and Kotlin (main development language and build script). Familiarity with gradle 7 or above will make it easy to understand the article.
@@ -28,16 +28,16 @@ In this example, there are two microservices, independently deployable and have 
 DB migrations are applied using flyway, db classes are generated using jOOQ.
 Both the applications have a majority of common dependencies - mostly of the same version.
 
-### Solution
+## Solution
 Implement reusable build logic using gradle plugins. Publish them to an artifact repository like mavenCentral() or an internal corporate repository. Note that in the solution the plugins are not yet published.
 
 Include one or more of these plugins in the applications to cumulatively define the type of the application, as well as the repeating build scripts.
 
 ### Action Items
 #### Abstract away into plugins:
-1. **db-migration plugin**: Each service needs to handle database migrations. Apart from the migration script itself, the flyway migration and jOOQ code generation logic are repeatable. 
-A basic precompiled script plugin is enough to handle this. The important bit to note is that the plugin is executed after the applied project is evaluated. 
-`afterEvaluate` should be used with care as it can mess up your build execution. In the db-migration plugin (line #47 onwards), it is safe.
+1. **db-migration plugin**: Each service needs to handle database migrations. Apart from the migration script itself, the flyway migration and jOOQ code generation logic are repeatable.
+   A basic precompiled script plugin is enough to handle this. The important bit to note is that the plugin is executed after the applied project is evaluated.
+   `afterEvaluate` should be used with care as it can mess up your build execution. In the db-migration plugin (line #47 onwards), it is safe.
 
 2. **dependencies plugin**: Dependencies and versions are another commonly repeated build logic. Instead of repeating the dependency declarations in each project, it is better to develop a plugin to handle dependency management. If a dependency needs to be added or version to be upgraded, it will be limited to one place. In the example, this plugin is implemented as a standalone project. Take a look at the plugin id creation part:
 
@@ -52,7 +52,7 @@ gradlePlugin {
 }
 ```
 3. **custom application-type plugin**: The third plugin is created to define the type of the micro services - Spring boot + kotlin application defined as a custom type. This will also be a precompiled script plugin.
-Note: The common plugin is used in the other two services, as a base plugin. This shows that plugins can be “layered”. For e.g. the db-migration’s plugin block:
+   Note: The common plugin is used in the other two services, as a base plugin. This shows that plugins can be “layered”. For e.g. the db-migration’s plugin block:
 ```
 plugins {
     id("me.teenageorge.my-dependencies")
@@ -62,9 +62,9 @@ plugins {
 ```
 The plugin block applies the custom `my-dependencies` plugin as well as two third party plugins which are necessary for flyway + jooq db migration strategies.
 
-#### Develop microservices:
+#### Create a couple of microservices:
 1. **consumer-service** - it is a Spring boot (Reactive) application developed in Kotlin. It uses jOOQ for code generation (from DB schema) and flyway for schema migration. It uses a postgres database.
-These microservices will use the above plugins, instead of applying individual plugins in each service. For e.g. consumer-service’s plugin block:
+   These microservices will use the above plugins, instead of applying individual plugins in each service. For e.g. consumer-service’s plugin block:
 ```
 plugins {
     id("me.teenageorge.spring-boot-kotlin-app") version "1.0.0"
@@ -73,16 +73,12 @@ plugins {
 ```
 
 2. **order-service** - also a Spring boot application developed in Kotlin. It uses jOOQ for code generation (from DB schema) and flyway for schema migration. It uses a postgres database.
-#### Build databases:
+#### Databases:
 Two postgres databases for each of the microservices. Postgres:14-alpine image is used to start two DB containers.
 #### Plugging it all in:
+The important bits are in the .gradle.kts files. The root large-projects-with-custom-gradle-plugins is like an umbrella project which is a monorepo containing the source code of different products. Take note that its build.gradle.kts is empty. The settings.gradle.kts “includes” the three builds - consumer-service, order-service and gradle-plugins. This is different from including a project in the multi-project hierarchical development, because this is a composite build. A composite build specifies which buildable components are to be grouped together.
+Go over to the source code and take a look at how it is all implemented.
 
-The important bits are in the `.gradle.kts` files. The root large-projects-with-custom-gradle-plugins is like an umbrella project which is a monorepo containing the source code of different products. 
-
-Take note that its `build.gradle.kts` is empty. 
-
-The `settings.gradle.kts` “includes” the three builds - consumer-service, order-service and gradle-plugins. 
-
-This is different from including a project in the multi-project hierarchical development, because this is a composite build. A composite build specifies which buildable components are to be grouped together.
-
-Go over to the source code and have a look at how it is all implemented.
+#### References:
+1. [Developing custom gradle plugins](https://docs.gradle.org/current/userguide/custom_plugins.html)
+2. [Structuring large software products](https://docs.gradle.org/current/userguide/structuring_software_products.html)
