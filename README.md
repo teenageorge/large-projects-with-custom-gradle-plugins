@@ -1,45 +1,43 @@
-# Multi application builds and plugins in gradle
+# <span style="color:#ff5f0e">Custom gradle plugins</span>
 
-## Summary:
-A non-trivial production ready server-side (a.k.a backend) application is built using multiple independently develop-able, deployable components. The components can be microservices, publishable libraries, documentation, adapters, test servers and so on. Most of the time, the build logic is repeated in these components.
+## <span style="color:#ff5f0e">Summary:</span>
+Any non-trivial production-ready server-side application has multiple independently deployable components. Some examples are microservices, libraries, and documentation.
 
-This art icle explains a standard way to build these components  as a multi application build, with a focus on reusing repeatable build logic in the form of gradle plugins.
+For many of these components, all or some of the build logic is similar, hence repeatable. This article explains how to reuse repeatable build logic by building custom Gradle plugins.
 
-The solution is developed with production readiness in mind while limiting the features to a bare minimum. The solution uses Kotlin DSL for build scripts, but the same results can be achieved using Groovy DSL.
+The solution is developed with production readiness in mind while limiting business features to a bare minimum. The solution uses Kotlin DSL for build scripts, but Groovy DSL is also a popular choice.
 
-Unrelated to the scope of the article, the source code can be a reference for anyone developing microservices in Spring boot (reactive), Kotlin, Flyway, jOOQ and Postgres.
+**<span style="color:#ff5f0e">Source code</span>**: [large-projects-with-custom-gradle-plugins](https://github.com/teenageorge/large-projects-with-custom-gradle-plugins)
 
-**Source code**: [large-projects-with-custom-gradle-plugins](https://github.com/teenageorge/large-projects-with-custom-gradle-plugins)
+## <span style="color:#ff5f0e">Audience:</span>
+Developers familiar with Gradle and Kotlin (primary development language and build script). Familiarity with Gradle 7 or above will make it easy to understand the article.
 
-## Audience:
-Developers who are familiar with gradle and Kotlin (main development language and build script). Familiarity with gradle 7 or above will make it easy to understand the article.
-Multi application vs multi project build:
+## <span style="color:#ff5f0e">Gradle plugins:</span>
+Plugins are Gradle's way of grouping reusable build logic.
+The most basic plugin can reside directly within the build.gradle(.kts), but sharing between components is impossible.
 
-A multi project build has a root/parent project and multiple sub projects. This is a standard way of building a single software component. A frequently occurring example is, a microservice and a few reusable libraries. This build has a single settings.gradle(.kts) at the root. It has a build.gradle(.kts) at the root and at sub project level to define build tasks. Together these make a single software component.
+The second type of plugin is called precompiled script plugin. These are publishable and shareable among components. The plugin's implementation is in the *.gradle(.kts) file directly under src/main/kotlin.
 
-A multi application build can have a number of composite builds (instead of hierarchical). Each component is an independent build, i.e. it has its own build.gradle(.kts) and settings.gradle(.kts) files. We can create custom builds by composing multiple components. This logic is defined in settings.gradle(.kts) file by “including” components.
+The third type of plugin - the stand-alone project - is the most versatile. This type of plugin is a Kotlin project, i.e. you would be writing your build logic just as you would be writing your application logic.
+This article will focus on the second and third types of plugins.
 
-## Gradle plugins:
-Plugins are gradle’s way of grouping reusable build logic. The most basic plugin can reside directly within the build.gradle(.kts) but this cannot be reused between components. A second type of plugin is called precompiled script plugin - it is written in a .gradle(.kts) file directly under src/main/[java/kotlin/groovy]. These are publishable and sharable among components. A third type of plugin - the stand alone project - is the most versatile. This type of plugin can be developed either in Java, Kotlin or Groovy, i.e. you would be writing your build logic just as you would be writing your application logic.
-We will focus on the second and third type of plugins in this article.
+## <span style="color:#ff5f0e">Sample application:</span>
+This example uses two microservices.  These are independently deployable and have the same tech stack - Spring boot, Kotlin, jOOQ, flyway, Postgres and Gradle.
+DB migrations are applied using flyway, and jOOQ code-gen generates DB classes.
+Both applications have a majority of common dependencies - mainly of the same version.
+## <span style="color:#ff5f0e">Solution:</span>
+Implement reusable build logic using Gradle plugins. Note that the solution makes use of internal plugins. It is better to publish the plugins to external repositories for production-ready applications. Then use them as binary plugins (without "including" them in the project path).
 
-## Sample application
-In this example, there are two microservices, independently deployable and have same tech stack - Spring boot, Kotlin, jOOQ, flyway, Postgres and gradle.
-DB migrations are applied using flyway, db classes are generated using jOOQ.
-Both the applications have a majority of common dependencies - mostly of the same version.
+Include one or more of these plugins in the applications to cumulatively define the application type and the repeating build scripts.
+### <span style="color:#ff5f0e">Action Items</span>
+#### <span style="color:#ff5f0e">Abstract away into plugins:</span>
+* **<span style="color:#ff5f0e">db-migration plugin</span>**: Each service needs to handle database migrations. Apart from the migration script itself, the flyway migration and jOOQ code generation logic are repeatable.
+  A precompiled script plugin is enough to handle this. The flyway and jOOQ plugins' execution starts after the project evaluation phase.
+  `afterEvaluate` should be used with care as it can potentially mess up your build execution.
 
-## Solution
-Implement reusable build logic using gradle plugins. Publish them to an artifact repository like mavenCentral() or an internal corporate repository. Note that in the solution the plugins are not yet published.
-
-Include one or more of these plugins in the applications to cumulatively define the type of the application, as well as the repeating build scripts.
-
-### Action Items
-#### Abstract away into plugins:
-1. **db-migration plugin**: Each service needs to handle database migrations. Apart from the migration script itself, the flyway migration and jOOQ code generation logic are repeatable.
-   A basic precompiled script plugin is enough to handle this. The important bit to note is that the plugin is executed after the applied project is evaluated.
-   `afterEvaluate` should be used with care as it can mess up your build execution. In the db-migration plugin (line #47 onwards), it is safe.
-
-2. **dependencies plugin**: Dependencies and versions are another commonly repeated build logic. Instead of repeating the dependency declarations in each project, it is better to develop a plugin to handle dependency management. If a dependency needs to be added or version to be upgraded, it will be limited to one place. In the example, this plugin is implemented as a standalone project. Take a look at the plugin id creation part:
+* **<span style="color:#ff5f0e">dependencies plugin</span>**: Dependencies and versions are another commonly repeated build logic. Instead of repeating the dependency declarations in each project, we can develop a plugin to handle dependency management.
+  The Kotlin project `common` defines a `DependencyPlugin` class. It extends `Plugin` and defines the plugin type as `Project`. The dependencies and versions are Kotlin `object`s - single static instances.
+  The plugin is defined with a plugin-id in build'gradle.kts.
 
 ```
 gradlePlugin {
@@ -51,8 +49,8 @@ gradlePlugin {
     }
 }
 ```
-3. **custom application-type plugin**: The third plugin is created to define the type of the micro services - Spring boot + kotlin application defined as a custom type. This will also be a precompiled script plugin.
-   Note: The common plugin is used in the other two services, as a base plugin. This shows that plugins can be “layered”. For e.g. the db-migration’s plugin block:
+* **<span style="color:#ff5f0e">custom application-type plugin</span>**: The third plugin defines the type of microservices - Spring boot + Kotlin application. This plugin will also be a precompiled script plugin.
+  Note: The other two services use `common` as a base plugin. This approach shows that plugins can be “layered”. E.g. the db-migration’s plugin block:
 ```
 plugins {
     id("me.teenageorge.my-dependencies")
@@ -60,25 +58,25 @@ plugins {
     id("org.flywaydb.flyway")
 }
 ```
-The plugin block applies the custom `my-dependencies` plugin as well as two third party plugins which are necessary for flyway + jooq db migration strategies.
+The plugin block applies`my-dependencies` and two third-party plugins necessary for flyway + jOOQ DB migration strategies.
 
-#### Create a couple of microservices:
-1. **consumer-service** - it is a Spring boot (Reactive) application developed in Kotlin. It uses jOOQ for code generation (from DB schema) and flyway for schema migration. It uses a postgres database.
-   These microservices will use the above plugins, instead of applying individual plugins in each service. For e.g. consumer-service’s plugin block:
+#### <span style="color:#ff5f0e">Create a couple of microservices:</span>
+* **<span style="color:#ff5f0e">consumer-service</span>** - Creates and retrieves consumers. It is a Spring boot (Reactive) + Kotlin application with a PostgreSQL database. It uses jOOQ for code generation (from DB schema) and flyway for schema migration.
+  These microservices will use the above plugins instead of individual plugins in each service. E.g. consumer service's plugin block:
 ```
 plugins {
     id("me.teenageorge.spring-boot-kotlin-app") version "1.0.0"
     id("me.teenageorge.migration") version "1.0.0"
 }
 ```
+* **<span style="color:#ff5f0e">order-service</span>** - Creates and retrieves orders. For the scope of the solution, technical design is the same as consumer-service.
+#### <span style="color:#ff5f0e">Databases:</span>
+Two Postgres databases for each of the microservices. `Postgres:14-alpine` is used to start the DB containers.
 
-2. **order-service** - also a Spring boot application developed in Kotlin. It uses jOOQ for code generation (from DB schema) and flyway for schema migration. It uses a postgres database.
-#### Databases:
-Two postgres databases for each of the microservices. Postgres:14-alpine image is used to start two DB containers.
-#### Plugging it all in:
-The important bits are in the .gradle.kts files. The root large-projects-with-custom-gradle-plugins is like an umbrella project which is a monorepo containing the source code of different products. Take note that its build.gradle.kts is empty. The settings.gradle.kts “includes” the three builds - consumer-service, order-service and gradle-plugins. This is different from including a project in the multi-project hierarchical development, because this is a composite build. A composite build specifies which buildable components are to be grouped together.
-Go over to the source code and take a look at how it is all implemented.
+#### <span style="color:#ff5f0e">Plugging it all in:</span>
+The significant bits are in the `.gradle.kts` files. The root `large-projects-with-custom-gradle-plugins` is like an umbrella project which is a monorepo containing the source code of different products. Note that the `build.gradle.kts` at the root level is empty. The `settings.gradle.kts` is composed of three components - consumer-service, order-service and gradle-plugins.
+Go over to the source code and see how it is all implemented.
 
-#### References:
+#### <span style="color:#ff5f0e">References:</span>
 1. [Developing custom gradle plugins](https://docs.gradle.org/current/userguide/custom_plugins.html)
 2. [Structuring large software products](https://docs.gradle.org/current/userguide/structuring_software_products.html)

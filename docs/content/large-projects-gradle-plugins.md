@@ -1,4 +1,4 @@
-title: Custom gradle plugins
+title: <span style="color:#ff5f0e">Custom gradle plugins</span>
 date: 29 Dec, 2022
 tags: Gradle, Spring boot, Kotlin, jOOQ
 category: gradle
@@ -17,9 +17,9 @@ Developers familiar with Gradle and Kotlin (primary development language and bui
 
 ## <span style="color:#ff5f0e">Gradle plugins:</span>
 Plugins are Gradle's way of grouping reusable build logic.
-The most basic plugin can reside directly within the build.gradle(.kts), but sharing between components is impossible.
+The most basic plugin can reside directly within the `build.gradle.kts`, but sharing between components is impossible.
 
-The second type of plugin is called precompiled script plugin. These are publishable and shareable among components. The plugin's implementation is in the *.gradle(.kts) file directly under src/main/kotlin.
+The second type of plugin is called precompiled script plugin. These are publishable and shareable among components. The plugin's implementation is in any of the `*.gradle.kts` file directly under src/main/kotlin.
 
 The third type of plugin - the stand-alone project - is the most versatile. This type of plugin is a Kotlin project, i.e. you would be writing your build logic just as you would be writing your application logic.
 This article will focus on the second and third types of plugins.
@@ -34,11 +34,11 @@ Implement reusable build logic using Gradle plugins. Note that the solution make
 Include one or more of these plugins in the applications to cumulatively define the application type and the repeating build scripts.
 ### <span style="color:#ff5f0e">Action Items</span>
 #### <span style="color:#ff5f0e">Abstract away into plugins:</span>
-1. **<span style="color:#ff5f0e">db-migration plugin</span>**: Each service needs to handle database migrations. Apart from the migration script itself, the flyway migration and jOOQ code generation logic are repeatable.
+* **<span style="color:#ff5f0e">db-migration plugin</span>**: Each service needs to handle database migrations. Apart from the migration script itself, the flyway migration and jOOQ code generation logic are repeatable.
    A precompiled script plugin is enough to handle this. The flyway and jOOQ plugins' execution starts after the project evaluation phase.
    `afterEvaluate` should be used with care as it can potentially mess up your build execution.
 
-2. **<span style="color:#ff5f0e">dependencies plugin</span>**: Dependencies and versions are another commonly repeated build logic. Instead of repeating the dependency declarations in each project, we can develop a plugin to handle dependency management.
+* **<span style="color:#ff5f0e">dependencies plugin</span>**: Dependencies and versions are another commonly repeated build logic. Instead of repeating the dependency declarations in each project, we can develop a plugin to handle dependency management.
    The Kotlin project `common` defines a `DependencyPlugin` class. It extends `Plugin` and defines the plugin type as `Project`. The dependencies and versions are Kotlin `object`s - single static instances.
    The plugin is defined with a plugin-id in build'gradle.kts.
 
@@ -52,7 +52,7 @@ gradlePlugin {
     }
 }
 ```
-3. **<span style="color:#ff5f0e">custom application-type plugin</span>**: The third plugin defines the type of microservices - Spring boot + Kotlin application. This plugin will also be a precompiled script plugin.
+* **<span style="color:#ff5f0e">custom application-type plugin</span>**: The third plugin defines the type of microservices - Spring boot + Kotlin application. This plugin will also be a precompiled script plugin.
    Note: The other two services use `common` as a base plugin. This approach shows that plugins can be “layered”. E.g. the db-migration’s plugin block:
 ```
 plugins {
@@ -61,10 +61,11 @@ plugins {
     id("org.flywaydb.flyway")
 }
 ```
+
 The plugin block applies`my-dependencies` and two third-party plugins necessary for flyway + jOOQ DB migration strategies.
 
 #### <span style="color:#ff5f0e">Create a couple of microservices:</span>
-1. **<span style="color:#ff5f0e">consumer-service</span>** - Creates and retrieves consumers. It is a Spring boot (Reactive) + Kotlin application with a PostgreSQL database. It uses jOOQ for code generation (from DB schema) and flyway for schema migration.
+* **<span style="color:#ff5f0e">consumer-service</span>** - Creates and retrieves consumers. It is a Spring boot (Reactive) + Kotlin application with a PostgreSQL database. It uses jOOQ for code generation (from DB schema) and flyway for schema migration.
    These microservices will use the above plugins instead of individual plugins in each service. E.g. consumer service's plugin block:
 ```
 plugins {
@@ -73,7 +74,7 @@ plugins {
 }
 ```
 
-2. **<span style="color:#ff5f0e">order-service</span>** - Creates and retrieves orders. Technical design is the same as consumer-service.
+* **<span style="color:#ff5f0e">order-service</span>** - Creates and retrieves orders. For the scope of the solution, technical design is the same as consumer-service.
 #### <span style="color:#ff5f0e">Databases:</span>
 Two Postgres databases for each of the microservices. `Postgres:14-alpine` is used to start the DB containers.
 
