@@ -3,7 +3,7 @@
 ## Summary:
 A non-trivial production ready server-side (a.k.a backend) application is built using multiple independently develop-able, deployable components. The components can be microservices, publishable libraries, documentation, adapters, test servers and so on. Most of the time, the build logic is repeated in these components.
 
-This art icle explains a standard way to build these components  as a multi application build, with a focus on reusing repeatable build logic in the form of gradle plugins.
+This article explains a standard way to build these components  as a multi application build, with a focus on reusing repeatable build logic in the form of gradle plugins.
 
 The solution is developed with production readiness in mind while limiting the features to a bare minimum. The solution uses Kotlin DSL for build scripts, but the same results can be achieved using Groovy DSL.
 
