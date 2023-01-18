@@ -1,7 +1,6 @@
 title: Return a temp file without creating one on disk
 date: 2022-12-27 10:00
 category: Daily-Java
-author: teenamgeorge
 
 #### Context of the problem:
 Last problem (flattening map of <String, CustomType>) was about preparing the data for creating the CSV file.

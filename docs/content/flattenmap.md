@@ -1,11 +1,10 @@
 title: Flatten nested map with custom type as values
 date: 2022-12-26 10:00
 category: Daily-Java
-author: teenamgeorge
 
 #### Context of the problem:
 
-Last week, there was a feature request to re-create a downloadable CSV file and delete it as soon as the file is downloaded.
+This problem is about re-creating a downloadable CSV file and delete it as soon as the file is downloaded.
 The file can be quite large, so it's not a good idea to store it on disk, even on the `temp` folder of the OS.
 
 This feature was to be built in a long existing/evolving monolithic application deployed on client premises.
