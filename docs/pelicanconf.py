@@ -1,9 +1,9 @@
 from datetime import datetime
 
 AUTHOR = 'Teena George'
-SITENAME = 'Articles on Java and Kotlin'
+SITENAME = 'Articles in Java and Kotlin'
 SITEURL = ''
-SITETITLE = 'Articles on Java and Kotlin'
+SITETITLE = 'Articles in Java and Kotlin'
 SITELOGO = SITEURL + 'images/profile.png'
 FAVICON = 'images/favicon.ico'
 BROWSER_COLOR = '#333333'
